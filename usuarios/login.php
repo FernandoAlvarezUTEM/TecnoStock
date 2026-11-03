@@ -35,6 +35,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION["id_usuario"] = $usuario["id_usuario"];
                 $_SESSION["nombre_usuario"] = $usuario["nombre"];
 
+                
+                header("Location: ../prueba_panel.php");
+                exit;
+                
+
+
                 $mensaje = "¡Inicio de sesión exitoso! Bienvenido " .
                            htmlspecialchars($usuario["nombre"]);
 
