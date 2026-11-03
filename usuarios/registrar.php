@@ -3,6 +3,8 @@
 require_once "../config/conexion.php";
 
 $mensaje = "";
+$registro_exitoso = false;
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -21,9 +23,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $clave_hash = password_hash($clave, PASSWORD_DEFAULT);
 
         try {
-            $sql = "INSERT INTO usuarios (nombre, correo, clave_hash)
-                    VALUES (:nombre, :correo, :clave_hash)";
-
+            $sql = "INSERT INTO usuarios (nombre, correo, clave_hash, rol)
+        VALUES (:nombre, :correo, :clave_hash, 'empleado')";
             $consulta = $conexion->prepare($sql);
 
             $consulta->execute([
@@ -33,6 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ]);
 
             $mensaje = "Usuario registrado correctamente.";
+            $registro_exitoso = true;
+
 
         } catch (PDOException $e) {
 
@@ -57,6 +60,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h1>Registro de usuario</h1>
 
     <p><?php echo htmlspecialchars($mensaje); ?></p>
+    <?php if ($registro_exitoso): ?>
+
+    <br>
+
+    <a href="login.php">
+        <button type="button">Iniciar sesión</button>
+    </a>
+
+    <br><br>
+
+    <a href="../index.php">Volver al inicio</a>
+
+<?php endif; ?>
+
 
     <form method="POST" action="">
 
