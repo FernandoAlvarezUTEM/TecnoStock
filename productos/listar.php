@@ -60,6 +60,8 @@ try {
                     <th>Precio</th>
                     <th>Stock actual</th>
                     <th>Stock mínimo</th>
+                    <th>Acciones</th>
+
                 </tr>
             </thead>
 
@@ -75,7 +77,19 @@ try {
                         <td>$<?php echo number_format($producto["precio"], 0, ",", "."); ?></td>
                         <td><?php echo $producto["stock_actual"]; ?></td>
                         <td><?php echo $producto["stock_minimo"]; ?></td>
-                    </tr>
+                        <td>
+                        <a href="editar.php?id=<?php echo $producto['id_producto']; ?>">
+        Editar
+    </a>
+
+    |
+
+    <a href="desactivar.php?id=<?php echo $producto['id_producto']; ?>">
+        Desactivar
+    </a>
+</td>
+                        
+                         </tr>
 
                 <?php endforeach; ?>
 
