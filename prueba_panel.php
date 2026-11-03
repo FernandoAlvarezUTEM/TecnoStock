@@ -22,6 +22,7 @@ require_once __DIR__ . "/config/verificar_sesion.php";
 <ul>
     <li><a href="productos/registrar.php">Registrar producto</a></li>
     <li><a href="productos/listar.php">Listar productos</a></li>
+    <li><a href="productos/inactivos.php">Ver productos inactivos</a></li>
     <li><a href="productos/buscar.php">Buscar productos</a></li>
     <li><a href="productos/movimientos.php">Registrar movimiento</a></li>
     <li><a href="productos/historial.php">Historial de movimientos</a></li>
