@@ -1,13 +1,14 @@
+
 <?php
 
 require_once "../config/conexion.php";
 
 $mensaje = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $correo = trim($_POST["correo"]);
-    $clave = $_POST["clave"];
+    $correo = trim($_POST["correo"] ?? "");
+    $clave = $_POST["clave"] ?? "";
 
     if (empty($correo) || empty($clave)) {
 
@@ -16,11 +17,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
 
         try {
+
             $sql = "SELECT * FROM usuarios
                     WHERE correo = :correo
                     AND estado = 1";
 
             $consulta = $conexion->prepare($sql);
+
             $consulta->execute([
                 ":correo" => $correo
             ]);
@@ -36,39 +39,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION["nombre_usuario"] = $usuario["nombre"];
                 $_SESSION["rol"] = $usuario["rol"];
 
-
                 header("Location: ../prueba_panel.php");
                 exit;
-                
-
-
-                $mensaje = "¡Inicio de sesión exitoso! Bienvenido " .
-                           htmlspecialchars($usuario["nombre"]);
 
             } else {
 
                 $mensaje = "Correo o contraseña incorrectos.";
+
             }
 
         } catch (PDOException $e) {
 
             $mensaje = "Ocurrió un error al iniciar sesión.";
+
         }
     }
 }
+
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Inicio de sesión - TecnoStock</title>
 </head>
+
 <body>
 
     <h1>Inicio de sesión</h1>
 
-    <p><?php echo $mensaje; ?></p>
+    <p>
+        <?php echo htmlspecialchars($mensaje, ENT_QUOTES, "UTF-8"); ?>
+    </p>
 
     <form method="POST" action="">
 
@@ -85,6 +89,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <button type="submit">Iniciar sesión</button>
 
     </form>
+
+    <p>
+        ¿No tienes una cuenta?
+        <a href="registrar.php">Regístrate aquí</a>
+    </p>
 
 </body>
 </html>

@@ -1,3 +1,4 @@
+
 <?php
 
 $host = "localhost";
@@ -6,16 +7,24 @@ $usuario = "root";
 $password = "";
 
 try {
+
     $conexion = new PDO(
         "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
         $usuario,
-        $password
+        $password,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false
+        ]
     );
 
-    $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
 } catch (PDOException $e) {
-    die("Error de conexión: " . $e->getMessage());
+
+    error_log("Error de conexión a TecnoStock: " . $e->getMessage());
+
+    die("No se pudo conectar con la base de datos. Inténtalo más tarde.");
+
 }
 
 ?>
