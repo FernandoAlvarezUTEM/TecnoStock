@@ -1,3 +1,4 @@
+
 <?php
 
 require_once "../config/verificar_sesion.php";
@@ -8,13 +9,15 @@ $error = "";
 // Obtener el ID del producto
 $id_producto = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
 
-if (!$id_producto) {
+if (!$id_producto || $id_producto <= 0) {
     die("Producto no válido.");
 }
 
+// Procesar la desactivación
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     try {
+
         $consulta = $conexion->prepare("
             UPDATE productos
             SET estado = 0
@@ -23,15 +26,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $consulta->execute([$id_producto]);
 
-        if ($consulta->rowCount() > 0) {
+        if ($consulta->rowCount() === 1) {
+
             header("Location: listar.php?desactivado=1");
             exit;
+
         } else {
+
             $error = "El producto no existe o ya está desactivado.";
+
         }
 
     } catch (PDOException $e) {
+
         $error = "No se pudo desactivar el producto.";
+
     }
 }
 
@@ -53,18 +62,22 @@ if (!$producto && $error === "") {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Desactivar producto - TecnoStock</title>
 </head>
+
 <body>
 
     <h1>Desactivar producto</h1>
 
     <?php if ($error !== ""): ?>
+
         <p style="color: red;">
             <?php echo htmlspecialchars($error); ?>
         </p>
+
     <?php endif; ?>
 
     <?php if ($producto): ?>
