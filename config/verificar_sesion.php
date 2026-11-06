@@ -1,12 +1,25 @@
+
 <?php
 
-session_start();
+// Iniciar sesión solamente si todavía no existe una sesión activa
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Comprobar si existe una sesión iniciada
-if (!isset($_SESSION["id_usuario"])) {
+// Comprobar que exista un ID de usuario válido
+if (
+    !isset($_SESSION["id_usuario"]) ||
+    !filter_var($_SESSION["id_usuario"], FILTER_VALIDATE_INT) ||
+    $_SESSION["id_usuario"] <= 0
+) {
 
-    // Si no hay sesión, volver al inicio de sesión
-   header("Location: /TecnoStock/usuarios/login.php");
+    // Cerrar la sesión si existe
+    $_SESSION = [];
+
+    session_destroy();
+
+    // Redirigir al inicio de sesión
+    header("Location: /TecnoStock/usuarios/login.php");
     exit;
 }
 
