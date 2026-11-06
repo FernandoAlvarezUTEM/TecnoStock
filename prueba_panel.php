@@ -8,7 +8,7 @@ require_once __DIR__ . "/config/verificar_sesion.php";
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de prueba - TecnoStock</title>
+    <title>Panel Principal - TecnoStock</title>
 </head>
 <body>
 
