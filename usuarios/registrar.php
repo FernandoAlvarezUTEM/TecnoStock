@@ -26,8 +26,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         try {
 
-            $sql = "INSERT INTO usuarios (nombre, correo, clave_hash, rol)
-                    VALUES (:nombre, :correo, :clave_hash, 'empleado')";
+            $sql = "INSERT INTO usuarios (nombre, correo, clave_hash)
+                    VALUES (:nombre, :correo, :clave_hash)";
 
             $consulta = $conexion->prepare($sql);
 
