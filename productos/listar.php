@@ -75,7 +75,14 @@ try {
                         <td><?php echo htmlspecialchars($producto["descripcion"] ?? ""); ?></td>
                         <td><?php echo htmlspecialchars($producto["categoria"]); ?></td>
                         <td>$<?php echo number_format($producto["precio"], 0, ",", "."); ?></td>
-                        <td><?php echo $producto["stock_actual"]; ?></td>
+                        <td>
+    <?php echo $producto["stock_actual"]; ?>
+
+    <?php if ($producto["stock_actual"] < $producto["stock_minimo"]): ?>
+        <strong style="color: red;">¡STOCK BAJO!</strong>
+    <?php endif; ?>
+</td>
+                        
                         <td><?php echo $producto["stock_minimo"]; ?></td>
                         <td>
                         <a href="editar.php?id=<?php echo $producto['id_producto']; ?>">
