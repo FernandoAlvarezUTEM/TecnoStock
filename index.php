@@ -9,7 +9,10 @@
 
     <h1>Bienvenido a TecnoStock</h1>
 
-    <p>Sistema de gestión de inventario</p>
+   <p>
+    Sistema de gestión de inventario para administrar productos,
+    controlar existencias y registrar movimientos de entrada y salida.
+</p>
 
     <h2>¿Qué deseas hacer?</h2>
 
