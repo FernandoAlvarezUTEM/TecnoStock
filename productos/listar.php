@@ -6,7 +6,7 @@ require_once "../config/conexion.php";
 
 try {
 
-    $sql = "SELECT 
+    $sql = "SELECT
                 p.id_producto,
                 p.codigo,
                 p.nombre,
@@ -19,10 +19,10 @@ try {
             INNER JOIN categorias c
                 ON p.id_categoria = c.id_categoria
             WHERE p.estado = 1
+            AND c.estado = 1
             ORDER BY p.nombre ASC";
 
     $consulta = $conexion->query($sql);
-
     $productos = $consulta->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
@@ -45,7 +45,10 @@ try {
 
     <h1>Listado de productos</h1>
 
-    <p>Bienvenido, <?php echo htmlspecialchars($_SESSION["nombre_usuario"]); ?>.</p>
+    <p>
+        Bienvenido,
+        <?php echo htmlspecialchars($_SESSION["nombre_usuario"]); ?>.
+    </p>
 
     <?php if (count($productos) > 0): ?>
 
@@ -61,7 +64,6 @@ try {
                     <th>Stock actual</th>
                     <th>Stock mínimo</th>
                     <th>Acciones</th>
-
                 </tr>
             </thead>
 
@@ -70,33 +72,60 @@ try {
                 <?php foreach ($productos as $producto): ?>
 
                     <tr>
-                        <td><?php echo htmlspecialchars($producto["codigo"]); ?></td>
-                        <td><?php echo htmlspecialchars($producto["nombre"]); ?></td>
-                        <td><?php echo htmlspecialchars($producto["descripcion"] ?? ""); ?></td>
-                        <td><?php echo htmlspecialchars($producto["categoria"]); ?></td>
-                        <td>$<?php echo number_format($producto["precio"], 0, ",", "."); ?></td>
+
                         <td>
-    <?php echo $producto["stock_actual"]; ?>
+                            <?php echo htmlspecialchars($producto["codigo"]); ?>
+                        </td>
 
-    <?php if ($producto["stock_actual"] < $producto["stock_minimo"]): ?>
-        <strong style="color: red;">¡STOCK BAJO!</strong>
-    <?php endif; ?>
-</td>
-                        
-                        <td><?php echo $producto["stock_minimo"]; ?></td>
                         <td>
-                        <a href="editar.php?id=<?php echo $producto['id_producto']; ?>">
-        Editar
-    </a>
+                            <?php echo htmlspecialchars($producto["nombre"]); ?>
+                        </td>
 
-    |
+                        <td>
+                            <?php echo htmlspecialchars($producto["descripcion"] ?? ""); ?>
+                        </td>
 
-    <a href="desactivar.php?id=<?php echo $producto['id_producto']; ?>">
-        Desactivar
-    </a>
-</td>
-                        
-                         </tr>
+                        <td>
+                            <?php echo htmlspecialchars($producto["categoria"]); ?>
+                        </td>
+
+                        <td>
+                            <?php echo htmlspecialchars($producto["precio"]); ?>
+                        </td>
+
+                        <td>
+
+                            <?php echo htmlspecialchars($producto["stock_actual"]); ?>
+
+                            <?php if ($producto["stock_actual"] < $producto["stock_minimo"]): ?>
+
+                                <strong style="color: red;">
+                                    ¡STOCK BAJO!
+                                </strong>
+
+                            <?php endif; ?>
+
+                        </td>
+
+                        <td>
+                            <?php echo htmlspecialchars($producto["stock_minimo"]); ?>
+                        </td>
+
+                        <td>
+
+                            <a href="editar.php?id=<?php echo $producto['id_producto']; ?>">
+                                Editar
+                            </a>
+
+                            |
+
+                            <a href="desactivar.php?id=<?php echo $producto['id_producto']; ?>">
+                                Desactivar
+                            </a>
+
+                        </td>
+
+                    </tr>
 
                 <?php endforeach; ?>
 
@@ -115,5 +144,4 @@ try {
     <a href="../prueba_panel.php">Volver al panel</a>
 
 </body>
-
 </html>
