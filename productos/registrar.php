@@ -8,21 +8,21 @@ $mensaje = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $codigo = trim($_POST["codigo"]);
-    $nombre = trim($_POST["nombre"]);
-    $descripcion = trim($_POST["descripcion"]);
-    $precio = $_POST["precio"];
-    $stock_actual = $_POST["stock_actual"];
-    $stock_minimo = $_POST["stock_minimo"];
-    $id_categoria = $_POST["id_categoria"];
+    $codigo = trim($_POST["codigo"] ?? "");
+    $nombre = trim($_POST["nombre"] ?? "");
+    $descripcion = trim($_POST["descripcion"] ?? "");
+    $precio = $_POST["precio"] ?? "";
+    $stock_actual = $_POST["stock_actual"] ?? "";
+    $stock_minimo = $_POST["stock_minimo"] ?? "";
+    $id_categoria = $_POST["id_categoria"] ?? "";
 
     if (
-        empty($codigo) ||
-        empty($nombre) ||
+        $codigo === "" ||
+        $nombre === "" ||
         $precio === "" ||
         $stock_actual === "" ||
         $stock_minimo === "" ||
-        empty($id_categoria)
+        $id_categoria === ""
     ) {
 
         $mensaje = "Debes completar todos los campos obligatorios.";
@@ -35,7 +35,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stock_actual < 0 ||
         $stock_minimo < 0 ||
         !ctype_digit((string)$stock_actual) ||
-        !ctype_digit((string)$stock_minimo)
+        !ctype_digit((string)$stock_minimo) ||
+        !ctype_digit((string)$id_categoria) ||
+        (int)$id_categoria <= 0
     ) {
 
         $mensaje = "El precio y las cantidades deben ser valores válidos y no negativos.";
@@ -44,26 +46,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         try {
 
-            $sql = "INSERT INTO productos
-                    (codigo, nombre, descripcion, precio,
-                     stock_actual, stock_minimo, id_categoria)
-                    VALUES
-                    (:codigo, :nombre, :descripcion, :precio,
-                     :stock_actual, :stock_minimo, :id_categoria)";
+            // Comprobar que la categoría exista y esté activa
+            $sqlCategoria = "SELECT id_categoria
+                             FROM categorias
+                             WHERE id_categoria = :id_categoria
+                             AND estado = 1";
 
-            $consulta = $conexion->prepare($sql);
+            $consultaCategoria = $conexion->prepare($sqlCategoria);
 
-            $consulta->execute([
-                ":codigo" => $codigo,
-                ":nombre" => $nombre,
-                ":descripcion" => $descripcion,
-                ":precio" => $precio,
-                ":stock_actual" => $stock_actual,
-                ":stock_minimo" => $stock_minimo,
+            $consultaCategoria->execute([
                 ":id_categoria" => $id_categoria
             ]);
 
-            $mensaje = "¡Producto registrado correctamente!";
+            if (!$consultaCategoria->fetch()) {
+
+                $mensaje = "La categoría seleccionada no existe o está inactiva.";
+
+            } else {
+
+                // Registrar el producto
+                $sql = "INSERT INTO productos
+                        (codigo, nombre, descripcion, precio,
+                         stock_actual, stock_minimo, id_categoria)
+                        VALUES
+                        (:codigo, :nombre, :descripcion, :precio,
+                         :stock_actual, :stock_minimo, :id_categoria)";
+
+                $consulta = $conexion->prepare($sql);
+
+                $consulta->execute([
+                    ":codigo" => $codigo,
+                    ":nombre" => $nombre,
+                    ":descripcion" => $descripcion,
+                    ":precio" => $precio,
+                    ":stock_actual" => $stock_actual,
+                    ":stock_minimo" => $stock_minimo,
+                    ":id_categoria" => $id_categoria
+                ]);
+
+                $mensaje = "¡Producto registrado correctamente!";
+            }
 
         } catch (PDOException $e) {
 
