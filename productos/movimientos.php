@@ -1,5 +1,6 @@
 
 <?php
+
 require_once "../config/verificar_sesion.php";
 require_once "../config/conexion.php";
 
@@ -17,8 +18,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if (!in_array($tipo, ["entrada", "salida"], true)) {
         $error = "Selecciona un tipo de movimiento válido.";
-    } elseif (!$id_producto || !$cantidad || $cantidad < 1) {
-        $error = "Selecciona un producto y una cantidad válida.";
+    } elseif (
+        $id_producto === false || $id_producto === null || $id_producto <= 0 ||
+        $cantidad === false || $cantidad === null || $cantidad <= 0
+    ) {
+        $error = "Selecciona un producto y una cantidad entera válida mayor que cero.";
     } else {
 
         try {
@@ -31,17 +35,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 WHERE id_producto = ? AND estado = 1
                 FOR UPDATE
             ");
+
             $consulta->execute([$id_producto]);
             $producto = $consulta->fetch(PDO::FETCH_ASSOC);
 
             if (!$producto) {
-                throw new Exception("El producto seleccionado no existe o está inactivo.");
+                throw new Exception(
+                    "El producto seleccionado no existe o está inactivo."
+                );
             }
 
             $stock_actual = (int) $producto["stock_actual"];
 
+            // Validar que una salida no supere el stock
             if ($tipo === "salida" && $cantidad > $stock_actual) {
-                throw new Exception("No hay stock suficiente para realizar esta salida.");
+                throw new Exception(
+                    "No hay stock suficiente para realizar esta salida."
+                );
             }
 
             // Calcular nuevo stock
@@ -70,14 +80,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $actualizar = $conexion->prepare("
                 UPDATE productos
                 SET stock_actual = ?
-                WHERE id_producto = ?
+                WHERE id_producto = ? AND estado = 1
             ");
 
-            $actualizar->execute([$nuevo_stock, $id_producto]);
+            $actualizar->execute([
+                $nuevo_stock,
+                $id_producto
+            ]);
+
+            if ($actualizar->rowCount() !== 1) {
+                throw new Exception(
+                    "No se pudo actualizar el stock del producto."
+                );
+            }
 
             $conexion->commit();
 
             $mensaje = "Movimiento registrado correctamente. Nuevo stock: " . $nuevo_stock;
+
+        } catch (PDOException $e) {
+
+            if ($conexion->inTransaction()) {
+                $conexion->rollBack();
+            }
+
+            $error = "Ocurrió un error al registrar el movimiento. Inténtalo nuevamente.";
 
         } catch (Exception $e) {
 
@@ -99,6 +126,7 @@ $consulta = $conexion->query("
 ");
 
 $productos = $consulta->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
