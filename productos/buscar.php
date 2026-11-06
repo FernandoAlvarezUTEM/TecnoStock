@@ -7,68 +7,102 @@ require_once "../config/conexion.php";
 $busqueda = "";
 $id_categoria = "";
 $productos = [];
+$categorias = [];
+$error = "";
 
 try {
 
-    // Obtener las categorías para el filtro
+    // Obtener las categorías activas
     $sqlCategorias = "SELECT id_categoria, nombre
-                      FROM categorias
-                      WHERE estado = 1
-                      ORDER BY nombre ASC";
+                     FROM categorias
+                     WHERE estado = 1
+                     ORDER BY nombre ASC";
 
     $consultaCategorias = $conexion->query($sqlCategorias);
     $categorias = $consultaCategorias->fetchAll(PDO::FETCH_ASSOC);
 
-        // Comprobar si el usuario presionó el botón Buscar
-        if (isset($_GET["buscar"])) {
+    // Comprobar si el usuario presionó Buscar
+    if (isset($_GET["buscar"])) {
 
         $busqueda = trim($_GET["busqueda"] ?? "");
         $id_categoria = $_GET["id_categoria"] ?? "";
 
-        $sql = "SELECT
-                    p.id_producto,
-                    p.codigo,
-                    p.nombre,
-                    p.descripcion,
-                    p.precio,
-                    p.stock_actual,
-                    p.stock_minimo,
-                    c.nombre AS categoria
-                FROM productos p
-                INNER JOIN categorias c
-                    ON p.id_categoria = c.id_categoria
-                WHERE p.estado = 1";
-
-        $parametros = [];
-
-        // Buscar por nombre o código
-        if ($busqueda !== "") {
-
-            $sql .= " AND (p.nombre LIKE :busqueda
-                       OR p.codigo LIKE :busqueda)";
-
-            $parametros[":busqueda"] = "%" . $busqueda . "%";
-        }
-
-        // Filtrar por categoría
+        // Validar que la categoría sea un número entero positivo
         if ($id_categoria !== "") {
 
-            $sql .= " AND p.id_categoria = :id_categoria";
+            if (
+                !ctype_digit((string)$id_categoria) ||
+                (int)$id_categoria <= 0
+            ) {
+                $error = "La categoría seleccionada no es válida.";
+            } else {
 
-            $parametros[":id_categoria"] = $id_categoria;
+                // Comprobar que la categoría exista y esté activa
+                $sqlValidar = "SELECT id_categoria
+                               FROM categorias
+                               WHERE id_categoria = ?
+                               AND estado = 1";
+
+                $consultaValidar = $conexion->prepare($sqlValidar);
+                $consultaValidar->execute([$id_categoria]);
+
+                if (!$consultaValidar->fetch()) {
+                    $error = "La categoría seleccionada no existe o está inactiva.";
+                }
+            }
         }
 
-        $sql .= " ORDER BY p.nombre ASC";
+        // Realizar búsqueda si no hay errores
+        if ($error === "") {
 
-        $consulta = $conexion->prepare($sql);
-        $consulta->execute($parametros);
+            $sql = "SELECT
+                        p.id_producto,
+                        p.codigo,
+                        p.nombre,
+                        p.descripcion,
+                        p.precio,
+                        p.stock_actual,
+                        p.stock_minimo,
+                        c.nombre AS categoria
+                    FROM productos p
+                    INNER JOIN categorias c
+                        ON p.id_categoria = c.id_categoria
+                    WHERE p.estado = 1
+                    AND c.estado = 1";
 
-        $productos = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $parametros = [];
+
+            // Buscar por nombre o código
+            if ($busqueda !== "") {
+
+                $sql .= " AND (
+                            p.nombre LIKE :busqueda
+                            OR p.codigo LIKE :busqueda
+                          )";
+
+                $parametros[":busqueda"] = "%" . $busqueda . "%";
+            }
+
+            // Filtrar por categoría
+            if ($id_categoria !== "") {
+
+                $sql .= " AND p.id_categoria = :id_categoria";
+
+                $parametros[":id_categoria"] = $id_categoria;
+            }
+
+            $sql .= " ORDER BY p.nombre ASC";
+
+            $consulta = $conexion->prepare($sql);
+            $consulta->execute($parametros);
+
+            $productos = $consulta->fetchAll(PDO::FETCH_ASSOC);
+        }
     }
 
 } catch (PDOException $e) {
 
-    die("Ocurrió un error al buscar los productos.");
+    $error = "Ocurrió un error al buscar los productos.";
 
 }
 
@@ -85,6 +119,12 @@ try {
 <body>
 
     <h1>Buscar productos</h1>
+
+    <?php if ($error !== ""): ?>
+        <p style="color: red;">
+            <?php echo htmlspecialchars($error); ?>
+        </p>
+    <?php endif; ?>
 
     <form method="GET" action="">
 
@@ -166,7 +206,7 @@ try {
 
         </table>
 
-    <?php else: ?>
+    <?php elseif ($error === ""): ?>
 
         <p>No se encontraron productos.</p>
 
