@@ -5,6 +5,7 @@ require_once "../config/verificar_sesion.php";
 require_once "../config/conexion.php";
 
 $mensaje = "";
+$registro_exitoso = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -85,6 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ]);
 
                 $mensaje = "¡Producto registrado correctamente!";
+                $registro_exitoso = true;
             }
 
         } catch (PDOException $e) {
@@ -107,83 +109,334 @@ $sqlCategorias = "SELECT id_categoria, nombre
 $consultaCategorias = $conexion->query($sqlCategorias);
 $categorias = $consultaCategorias->fetchAll(PDO::FETCH_ASSOC);
 
+$nombre_usuario = htmlspecialchars($_SESSION["nombre_usuario"], ENT_QUOTES, "UTF-8");
+
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar producto - TecnoStock</title>
+
+    <link rel="stylesheet" href="../assets/css/estilos.css">
+
+    <style>
+        .pagina {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .barra-superior {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .barra-superior h1 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .usuario {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            padding: 11px 16px;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .introduccion {
+            margin-bottom: 25px;
+        }
+
+        .introduccion p {
+            color: #64748b;
+            margin-top: 7px;
+            line-height: 1.6;
+        }
+
+        .formulario-panel {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 13px;
+            padding: 28px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+
+        .formulario-panel h2 {
+            font-size: 19px;
+            margin: 0 0 8px;
+        }
+
+        .formulario-ayuda {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 25px;
+        }
+
+        .campos-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0 22px;
+        }
+
+        .campo-completo {
+            grid-column: 1 / -1;
+        }
+
+        .formulario-panel textarea {
+            min-height: 105px;
+            resize: vertical;
+        }
+
+        .campo-obligatorio {
+            color: #dc2626;
+        }
+
+        .mensaje-formulario {
+            padding: 13px 16px;
+            margin-bottom: 22px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .mensaje-exito {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .mensaje-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .botones-formulario {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .pie {
+            margin-top: 22px;
+        }
+
+        @media (max-width: 650px) {
+            .pagina {
+                padding: 18px 12px;
+            }
+
+            .campos-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .campo-completo {
+                grid-column: auto;
+            }
+
+            .formulario-panel {
+                padding: 20px;
+            }
+
+            .barra-superior h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <h1>Registrar producto</h1>
+    <main class="pagina">
 
-    <p><?php echo htmlspecialchars($mensaje); ?></p>
+        <header class="barra-superior">
 
-    <form method="POST" action="">
+            <h1>Registrar producto</h1>
 
-        <label>Código:</label>
-        <input type="text" name="codigo" required>
+            <div class="usuario">
+                Usuario: <?php echo $nombre_usuario; ?>
+            </div>
 
-        <br><br>
+        </header>
 
-        <label>Nombre:</label>
-        <input type="text" name="nombre" required>
+        <section class="introduccion">
 
-        <br><br>
+            <h2>Agregar al inventario</h2>
 
-        <label>Descripción:</label>
-        <textarea name="descripcion"></textarea>
+            <p>
+                Completa la información del producto para incorporarlo
+                al inventario de TecnoStock.
+            </p>
 
-        <br><br>
+        </section>
 
-        <label>Precio:</label>
-        <input type="number" name="precio" min="0" step="0.01" required>
+        <section class="formulario-panel">
 
-        <br><br>
+            <h2>Información del producto</h2>
 
-        <label>Stock actual:</label>
-        <input type="number" name="stock_actual" min="0" step="1" required>
+            <p class="formulario-ayuda">
+                Los campos marcados con <span class="campo-obligatorio">*</span>
+                son obligatorios.
+            </p>
 
-        <br><br>
+            <?php if (!empty($mensaje)): ?>
 
-        <label>Stock mínimo:</label>
-        <input type="number" name="stock_minimo" min="0" step="1" required>
+                <div class="mensaje-formulario <?php echo $registro_exitoso ? 'mensaje-exito' : 'mensaje-error'; ?>">
+                    <?php echo htmlspecialchars($mensaje, ENT_QUOTES, "UTF-8"); ?>
+                </div>
 
-        <br><br>
+            <?php endif; ?>
 
-        <label>Categoría:</label>
+            <form method="POST" action="">
 
-        <select name="id_categoria" required>
-            <option value="">Selecciona una categoría</option>
+                <div class="campos-grid">
 
-            <?php foreach ($categorias as $categoria): ?>
+                    <div class="formulario-grupo">
+                        <label for="codigo">
+                            Código <span class="campo-obligatorio">*</span>
+                        </label>
 
-                <option value="<?php echo $categoria["id_categoria"]; ?>">
-                    <?php echo htmlspecialchars($categoria["nombre"]); ?>
-                </option>
+                        <input
+                            type="text"
+                            id="codigo"
+                            name="codigo"
+                            placeholder="Ej: TEC003"
+                            value="<?php echo htmlspecialchars($_POST["codigo"] ?? "", ENT_QUOTES, "UTF-8"); ?>"
+                            required
+                        >
+                    </div>
 
-            <?php endforeach; ?>
+                    <div class="formulario-grupo">
+                        <label for="nombre">
+                            Nombre <span class="campo-obligatorio">*</span>
+                        </label>
 
-        </select>
+                        <input
+                            type="text"
+                            id="nombre"
+                            name="nombre"
+                            placeholder="Nombre del producto"
+                            value="<?php echo htmlspecialchars($_POST["nombre"] ?? "", ENT_QUOTES, "UTF-8"); ?>"
+                            required
+                        >
+                    </div>
 
-        <br><br>
+                    <div class="formulario-grupo campo-completo">
+                        <label for="descripcion">Descripción</label>
 
-        <button type="submit">Registrar producto</button>
+                        <textarea
+                            id="descripcion"
+                            name="descripcion"
+                            placeholder="Describe las características del producto..."
+                        ><?php echo htmlspecialchars($_POST["descripcion"] ?? "", ENT_QUOTES, "UTF-8"); ?></textarea>
+                    </div>
 
-    </form>
+                    <div class="formulario-grupo">
+                        <label for="precio">
+                            Precio <span class="campo-obligatorio">*</span>
+                        </label>
 
-    <br>
+                        <input
+                            type="number"
+                            id="precio"
+                            name="precio"
+                            min="0"
+                            step="0.01"
+                            placeholder="Ej: 15990"
+                            value="<?php echo htmlspecialchars($_POST["precio"] ?? "", ENT_QUOTES, "UTF-8"); ?>"
+                            required
+                        >
+                    </div>
 
-    <a href="listar.php">Ver productos</a>
+                    <div class="formulario-grupo">
+                        <label for="id_categoria">
+                            Categoría <span class="campo-obligatorio">*</span>
+                        </label>
 
-    <br><br>
+                        <select id="id_categoria" name="id_categoria" required>
 
-    <a href="../prueba_panel.php">Volver al panel</a>
+                            <option value="">Selecciona una categoría</option>
+
+                            <?php foreach ($categorias as $categoria): ?>
+
+                                <option
+                                    value="<?php echo $categoria["id_categoria"]; ?>"
+                                    <?php echo (($_POST["id_categoria"] ?? "") == $categoria["id_categoria"]) ? "selected" : ""; ?>
+                                >
+                                    <?php echo htmlspecialchars($categoria["nombre"], ENT_QUOTES, "UTF-8"); ?>
+                                </option>
+
+                            <?php endforeach; ?>
+
+                        </select>
+                    </div>
+
+                    <div class="formulario-grupo">
+                        <label for="stock_actual">
+                            Stock actual <span class="campo-obligatorio">*</span>
+                        </label>
+
+                        <input
+                            type="number"
+                            id="stock_actual"
+                            name="stock_actual"
+                            min="0"
+                            step="1"
+                            placeholder="Cantidad disponible"
+                            value="<?php echo htmlspecialchars($_POST["stock_actual"] ?? "", ENT_QUOTES, "UTF-8"); ?>"
+                            required
+                        >
+                    </div>
+
+                    <div class="formulario-grupo">
+                        <label for="stock_minimo">
+                            Stock mínimo <span class="campo-obligatorio">*</span>
+                        </label>
+
+                        <input
+                            type="number"
+                            id="stock_minimo"
+                            name="stock_minimo"
+                            min="0"
+                            step="1"
+                            placeholder="Cantidad mínima"
+                            value="<?php echo htmlspecialchars($_POST["stock_minimo"] ?? "", ENT_QUOTES, "UTF-8"); ?>"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+                <div class="botones-formulario">
+
+                    <button type="submit" class="boton">
+                        Registrar producto
+                    </button>
+
+                    <a href="listar.php" class="boton boton-secundario">
+                        Ver productos
+                    </a>
+
+                </div>
+
+            </form>
+
+        </section>
+
+        <div class="pie">
+            <a href="../prueba_panel.php" class="boton boton-secundario">
+                ← Volver al panel principal
+            </a>
+        </div>
+
+    </main>
 
 </body>
-
 </html>

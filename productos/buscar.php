@@ -76,11 +76,13 @@ try {
             if ($busqueda !== "") {
 
                 $sql .= " AND (
-                            p.nombre LIKE :busqueda
-                            OR p.codigo LIKE :busqueda
+                            p.nombre LIKE :nombre   
+                            OR p.codigo LIKE :codigo
                           )";
 
-                $parametros[":busqueda"] = "%" . $busqueda . "%";
+                $parametros[":nombre"] = "%" . $busqueda . "%";
+                $parametros[":codigo"] = "%" . $busqueda . "%";
+
             }
 
             // Filtrar por categoría
@@ -113,113 +115,351 @@ try {
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buscar productos - TecnoStock</title>
+
+    <link rel="stylesheet" href="../assets/css/estilos.css">
+
+    <style>
+        .encabezado-pagina {
+            margin-bottom: 25px;
+        }
+
+        .encabezado-pagina h1 {
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .encabezado-pagina p {
+            color: #64748b;
+            margin: 0;
+        }
+
+        .tarjeta-busqueda {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 25px;
+        }
+
+        .tarjeta-busqueda h2,
+        .resultados h2 {
+            color: #1e293b;
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .formulario-busqueda {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .grupo-campo label {
+            display: block;
+            color: #334155;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .grupo-campo input,
+        .grupo-campo select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .grupo-campo input:focus,
+        .grupo-campo select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .acciones-busqueda {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .boton-buscar {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 11px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .boton-buscar:hover {
+            background: #1d4ed8;
+        }
+
+        .boton-limpiar {
+            background: #e2e8f0;
+            color: #334155;
+            border-radius: 8px;
+            padding: 11px 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .boton-limpiar:hover {
+            background: #cbd5e1;
+        }
+
+        .resultados {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .contador-resultados {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .mensaje-error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 13px;
+            margin-bottom: 20px;
+        }
+
+        .mensaje-vacio {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 30px 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .stock-bajo {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .stock-normal {
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        .volver {
+            display: inline-block;
+            margin-top: 25px;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 650px) {
+            .formulario-busqueda {
+                grid-template-columns: 1fr;
+            }
+
+            .tarjeta-busqueda,
+            .resultados {
+                padding: 18px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <h1>Buscar productos</h1>
+    <main class="contenedor">
 
-    <?php if ($error !== ""): ?>
-        <p style="color: red;">
-            <?php echo htmlspecialchars($error); ?>
-        </p>
-    <?php endif; ?>
+        <div class="encabezado-pagina">
+            <h1>Buscar productos</h1>
+            <p>Encuentra productos del inventario por nombre, código o categoría.</p>
+        </div>
 
-    <form method="GET" action="">
+        <?php if ($error !== ""): ?>
 
-        <label>Nombre o código:</label>
+            <div class="mensaje-error">
+                <?php echo htmlspecialchars($error, ENT_QUOTES, "UTF-8"); ?>
+            </div>
 
-        <input
-            type="text"
-            name="busqueda"
-            value="<?php echo htmlspecialchars($busqueda); ?>"
-            placeholder="Ejemplo: Mouse o TEC001"
-        >
+        <?php endif; ?>
 
-        <br><br>
+        <section class="tarjeta-busqueda">
 
-        <label>Categoría:</label>
+            <h2>Filtros de búsqueda</h2>
 
-        <select name="id_categoria">
+            <form method="GET" action="">
 
-            <option value="">Todas las categorías</option>
+                <div class="formulario-busqueda">
 
-            <?php foreach ($categorias as $categoria): ?>
+                    <div class="grupo-campo">
 
-                <option
-                    value="<?php echo $categoria["id_categoria"]; ?>"
-                    <?php echo ($id_categoria == $categoria["id_categoria"]) ? "selected" : ""; ?>
-                >
-                    <?php echo htmlspecialchars($categoria["nombre"]); ?>
-                </option>
+                        <label for="busqueda">Nombre o código</label>
 
-            <?php endforeach; ?>
+                        <input
+                            type="text"
+                            name="busqueda"
+                            id="busqueda"
+                            value="<?php echo htmlspecialchars($busqueda, ENT_QUOTES, "UTF-8"); ?>"
+                            placeholder="Ejemplo: Mouse o TEC001"
+                        >
 
-        </select>
+                    </div>
 
-        <br><br>
+                    <div class="grupo-campo">
 
-        <button type="submit" name="buscar" value="1">Buscar</button>
+                        <label for="id_categoria">Categoría</label>
 
-        <a href="buscar.php">Limpiar búsqueda</a>
+                        <select name="id_categoria" id="id_categoria">
 
-    </form>
+                            <option value="">Todas las categorías</option>
 
-    <hr>
+                            <?php foreach ($categorias as $categoria): ?>
 
-    <h2>Resultados</h2>
+                                <option
+                                    value="<?php echo (int) $categoria["id_categoria"]; ?>"
+                                    <?php echo ($id_categoria == $categoria["id_categoria"]) ? "selected" : ""; ?>
+                                >
+                                    <?php echo htmlspecialchars($categoria["nombre"], ENT_QUOTES, "UTF-8"); ?>
+                                </option>
 
-    <?php if (count($productos) > 0): ?>
+                            <?php endforeach; ?>
 
-        <table border="1" cellpadding="8">
+                        </select>
 
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Categoría</th>
-                    <th>Precio</th>
-                    <th>Stock actual</th>
-                    <th>Stock mínimo</th>
-                </tr>
-            </thead>
+                    </div>
 
-            <tbody>
+                </div>
 
-                <?php foreach ($productos as $producto): ?>
+                <div class="acciones-busqueda">
 
-                    <tr>
-                        <td><?php echo htmlspecialchars($producto["codigo"]); ?></td>
-                        <td><?php echo htmlspecialchars($producto["nombre"]); ?></td>
-                        <td><?php echo htmlspecialchars($producto["descripcion"] ?? ""); ?></td>
-                        <td><?php echo htmlspecialchars($producto["categoria"]); ?></td>
-                        <td>$<?php echo number_format($producto["precio"], 0, ",", "."); ?></td>
-                        <td><?php echo $producto["stock_actual"]; ?></td>
-                        <td><?php echo $producto["stock_minimo"]; ?></td>
-                    </tr>
+                    <button type="submit" name="buscar" value="1" class="boton-buscar">
+                        Buscar productos
+                    </button>
 
-                <?php endforeach; ?>
+                    <a href="buscar.php" class="boton-limpiar">
+                        Limpiar búsqueda
+                    </a>
 
-            </tbody>
+                </div>
 
-        </table>
+            </form>
 
-    <?php elseif ($error === ""): ?>
+        </section>
 
-        <p>No se encontraron productos.</p>
+        <section class="resultados">
 
-    <?php endif; ?>
+            <h2>Resultados de búsqueda</h2>
 
-    <br>
+            <?php if (count($productos) > 0): ?>
 
-    <a href="listar.php">Volver al listado</a>
+                <p class="contador-resultados">
+                    Se encontraron <?php echo count($productos); ?> productos.
+                </p>
 
-    <br><br>
+                <div class="tabla-contenedor">
 
-    <a href="../prueba_panel.php">Volver al panel</a>
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Stock actual</th>
+                                <th>Stock mínimo</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <?php foreach ($productos as $producto): ?>
+
+                                <tr>
+
+                                    <td>
+                                        <?php echo htmlspecialchars($producto["codigo"], ENT_QUOTES, "UTF-8"); ?>
+                                    </td>
+
+                                    <td>
+                                        <?php echo htmlspecialchars($producto["nombre"], ENT_QUOTES, "UTF-8"); ?>
+                                    </td>
+
+                                    <td>
+                                        <?php echo htmlspecialchars($producto["descripcion"] ?? "", ENT_QUOTES, "UTF-8"); ?>
+                                    </td>
+
+                                    <td>
+                                        <?php echo htmlspecialchars($producto["categoria"], ENT_QUOTES, "UTF-8"); ?>
+                                    </td>
+
+                                    <td>
+                                        $<?php echo number_format((float) $producto["precio"], 0, ",", "."); ?>
+                                    </td>
+
+                                    <td>
+                                        <?php if ((int) $producto["stock_actual"] < (int) $producto["stock_minimo"]): ?>
+
+                                            <span class="stock-bajo">
+                                                <?php echo (int) $producto["stock_actual"]; ?>
+                                            </span>
+
+                                        <?php else: ?>
+
+                                            <span class="stock-normal">
+                                                <?php echo (int) $producto["stock_actual"]; ?>
+                                            </span>
+
+                                        <?php endif; ?>
+                                    </td>
+
+                                    <td>
+                                        <?php echo (int) $producto["stock_minimo"]; ?>
+                                    </td>
+
+                                </tr>
+
+                            <?php endforeach; ?>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            <?php elseif ($error === ""): ?>
+
+                <div class="mensaje-vacio">
+                    No se encontraron productos con los criterios seleccionados.
+                </div>
+
+            <?php endif; ?>
+
+        </section>
+
+        <a href="listar.php" class="boton-secundario volver">
+            Volver al listado
+        </a>
+
+        <a href="../prueba_panel.php" class="boton-secundario volver">
+            Volver al panel
+        </a>
+
+    </main>
 
 </body>
-
 </html>

@@ -39,82 +39,198 @@ try {
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productos inactivos - TecnoStock</title>
+
+    <link rel="stylesheet" href="../assets/css/estilos.css">
+
+    <style>
+        .encabezado-pagina {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .encabezado-pagina h1 {
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
+        .encabezado-pagina p {
+            color: #64748b;
+            margin: 0;
+        }
+
+        .contador {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .estado-inactivo {
+            display: inline-block;
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .boton-reactivar {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 8px 13px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .boton-reactivar:hover {
+            background: #1d4ed8;
+        }
+
+        .mensaje-vacio {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 35px 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .mensaje-vacio strong {
+            display: block;
+            color: #334155;
+            font-size: 17px;
+            margin-bottom: 8px;
+        }
+
+        .acciones-inferiores {
+            margin-top: 25px;
+        }
+    </style>
 </head>
 
 <body>
 
-    <h1>Productos inactivos</h1>
+    <main class="contenedor">
 
-    <?php if (count($productos) > 0): ?>
+        <section class="panel">
 
-        <table border="1" cellpadding="8">
+            <div class="encabezado-pagina">
 
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Precio</th>
-                    <th>Stock actual</th>
-                    <th>Stock mínimo</th>
-                    <th>Categoría</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
+                <div>
+                    <h1>Productos inactivos</h1>
+                    <p>Consulta y administra los productos que han sido desactivados.</p>
+                </div>
 
-            <tbody>
+                <span class="contador">
+                    <?php echo count($productos); ?>
+                    productos inactivos
+                </span>
 
-                <?php foreach ($productos as $producto): ?>
+            </div>
 
-                    <tr>
+            <?php if (count($productos) > 0): ?>
 
-                        <td>
-                            <?php echo htmlspecialchars($producto["codigo"]); ?>
-                        </td>
+                <div class="tabla-contenedor">
 
-                        <td>
-                            <?php echo htmlspecialchars($producto["nombre"]); ?>
-                        </td>
+                    <table>
 
-                        <td>
-                            <?php echo htmlspecialchars($producto["precio"]); ?>
-                        </td>
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+                                <th>Stock actual</th>
+                                <th>Stock mínimo</th>
+                                <th>Categoría</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
 
-                        <td>
-                            <?php echo htmlspecialchars($producto["stock_actual"]); ?>
-                        </td>
+                        <tbody>
 
-                        <td>
-                            <?php echo htmlspecialchars($producto["stock_minimo"]); ?>
-                        </td>
+                            <?php foreach ($productos as $producto): ?>
 
-                        <td>
-                            <?php echo htmlspecialchars($producto["categoria"]); ?>
-                        </td>
+                                <tr>
 
-                        <td>
-                            <a href="reactivar.php?id=<?php echo $producto['id_producto']; ?>">
-                                Reactivar
-                            </a>
-                        </td>
+                                    <td>
+                                        <?php echo htmlspecialchars($producto["codigo"]); ?>
+                                    </td>
 
-                    </tr>
+                                    <td>
+                                        <?php echo htmlspecialchars($producto["nombre"]); ?>
+                                    </td>
 
-                <?php endforeach; ?>
+                                    <td>
+                                        $<?php echo number_format((float) $producto["precio"], 0, ",", "."); ?>
+                                    </td>
 
-            </tbody>
+                                    <td>
+                                        <?php echo htmlspecialchars($producto["stock_actual"]); ?>
+                                    </td>
 
-        </table>
+                                    <td>
+                                        <?php echo htmlspecialchars($producto["stock_minimo"]); ?>
+                                    </td>
 
-    <?php else: ?>
+                                    <td>
+                                        <?php echo htmlspecialchars($producto["categoria"]); ?>
+                                    </td>
 
-        <p>No hay productos inactivos.</p>
+                                    <td>
+                                        <span class="estado-inactivo">Inactivo</span>
+                                    </td>
 
-    <?php endif; ?>
+                                    <td>
+                                        <a
+                                            href="reactivar.php?id=<?php echo (int) $producto['id_producto']; ?>"
+                                            class="boton-reactivar">
+                                            Reactivar
+                                        </a>
+                                    </td>
 
-    <br>
+                                </tr>
 
-    <a href="../prueba_panel.php">Volver al panel</a>
+                            <?php endforeach; ?>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            <?php else: ?>
+
+                <div class="mensaje-vacio">
+                    <strong>No hay productos inactivos</strong>
+                    Actualmente no existen productos desactivados para mostrar.
+                </div>
+
+            <?php endif; ?>
+
+            <div class="acciones-inferiores">
+                <a href="../prueba_panel.php" class="boton-secundario">
+                    Volver al panel
+                </a>
+            </div>
+
+        </section>
+
+    </main>
 
 </body>
 </html>
