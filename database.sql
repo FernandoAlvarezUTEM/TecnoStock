@@ -82,3 +82,14 @@ CREATE TABLE IF NOT EXISTS movimientos (
         REFERENCES usuarios(id_usuario),
     CHECK (cantidad > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- ==========================================
+-- DATOS INICIALES: CATEGORIAS
+-- ==========================================
+
+INSERT IGNORE INTO categorias (nombre)
+VALUES
+    ('Almacenamiento'),
+    ('Audio'),
+    ('Cables y adaptadores'),
+    ('Componentes'),
+    ('Periféricos');
